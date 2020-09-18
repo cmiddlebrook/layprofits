@@ -10,10 +10,12 @@ if ($bfcsv == FALSE)
     exit;
 }
 
-$row = 1;
+$races = array();
 while(($data = fgetcsv($bfcsv, 1000, ",")) !== FALSE)
 {
-    $race = new Race($data);
-    $row++;
+    $race = new GreyhoundRace($data);
+    array_push($races, $race);
 }
+echo count($races) . " races parsed\n";
+
 fclose($bfcsv);
