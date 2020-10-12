@@ -28,12 +28,13 @@ if ($fileName == FALSE)
     exit;
 }
 
-$db = Database::getInstance();
-
 $bsf = new BettingStrategyFactory();
+$count = 0;
 while(($data = fgetcsv($csvFile, 1000, ",")) !== FALSE)
 {
     $bsf->parseBet($data);
+    $count++;
 }
 
+echo "$count races parsed\n";
 fclose($csvFile);

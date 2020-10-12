@@ -15,9 +15,11 @@ class BettingStrategy
     protected $track;
     protected $length;
     protected $class;
+    protected $runner;
     protected $stake;
     protected $odds;
     protected $profit;
+    protected $tableName;
 
     public function parseBet(array $data)
     {
@@ -35,6 +37,8 @@ class BettingStrategy
         $this->extractClass($classFields);
         $this->extractStart($eventFields);
         $this->extractRunner($data[2]);
+
+        $this->store();
     }
 
     protected function extractLength(array $classFields)
@@ -61,6 +65,25 @@ class BettingStrategy
     {
         $sep = strpos($selection, ". ");
         $this->runner = substr($selection, $sep+2);
+    }
+
+    protected function store()
+    {
+        $db = Database::getInstance();
+
+        $sql = "INSERT INTO $this->tableName (start, track, length, class, runner, stake, odds, profit) VALUES (?,?,?,?,?,?,?,?)";
+        $statement = $db->prepare($sql);
+        $statement->execute(
+            [
+                $this->start->format('Y-m-d H:i'),
+                $this->track,
+                $this->length,
+                $this->class,
+                $this->runner,
+                $this->stake,
+                $this->odds,
+                $this->profit
+            ]);
     }
 
 }

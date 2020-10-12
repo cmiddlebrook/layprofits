@@ -2,6 +2,8 @@
 
 class NapcheckerStrategy extends BettingStrategy
 {
+    protected $tableName = "napchecker";
+
     protected function extractLength(array $classFields)
     {
         $this->length = $classFields[0];
@@ -11,7 +13,6 @@ class NapcheckerStrategy extends BettingStrategy
     {
         $classPieces = array_slice($classFields, 1);
         $this->class = implode(" ", $classPieces);
-        echo "Race class: " . $this->class . "\n";
     }
 
     protected function extractRunner(string $selection)
