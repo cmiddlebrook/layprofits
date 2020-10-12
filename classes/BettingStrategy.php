@@ -21,6 +21,8 @@ class BettingStrategy
     protected $profit;
     protected $tableName;
 
+    protected $daysProfits = array();
+
     public function parseBet(array $data)
     {
         $raceFields = explode("\\", $data[1]);
@@ -99,25 +101,65 @@ class BettingStrategy
 
     public function analyse()
     {
-        $nfmt = new NumberFormatter("en", NumberFormatter::CURRENCY);
-        $counter = 0;
         $day = new DateTime();
         $day->setTime(0,0);
 
         $raceProfits = $this->getProfitByRace();
+        // store the profits for each race in an array indexed by the date run
         foreach($raceProfits as $row)
         {
-            $counter++;
-            $start = new DateTime($row['start']);
-            $start->setTime(0,0);
-            if ($day != $start)
-            {
-                echo "Profit for " . $start->format('d-M-Y') . ' : ' . $nfmt->formatCurrency($dailyProfit, 'GBP') . "\n";
-                $dailyProfit = 0;
-            }
-            $dailyProfit += $row['race_profit'];
-            $day = $start;
+            $this->recordRaceProfit($row);
         }
+
+        // now analyse on a per-day basis
+        foreach ($this->daysProfits as $day => $profits)
+        {
+            $this->analyseDailyProfit($day);
+        }
+    }
+
+    protected function recordRaceProfit($raceProfit)
+    {
+        $start = new DateTime($raceProfit['start']);
+        $start->setTime(0,0);
+        $startString = $start->format('d-M-Y');
+
+        if (!array_key_exists($startString, $this->daysProfits))
+        {
+            $this->daysProfits[$startString] = array();
+        }
+
+        array_push($this->daysProfits[$startString], $raceProfit);
+    }
+
+    protected function analyseDailyProfit($startString)
+    {
+        // echo "Analysing bets for $startString\n";
+        $nfmt = new NumberFormatter("en", NumberFormatter::CURRENCY);
+        $runningTotal = 0.0;
+        $high = 0.0;
+        $low = 0.0;
+        $raceProfits = $this->daysProfits[$startString];
+        foreach ($raceProfits as $raceProfit)
+        {
+            $profit = $raceProfit['race_profit'];
+            $runningTotal += $profit;
+
+            if ($runningTotal > $high)
+            {
+                $high = $runningTotal;
+            }
+
+            if ($runningTotal < $low)
+            {
+                $low = $runningTotal;
+            }
+
+            // echo "Running total: " . $nfmt->formatCurrency($runningTotal, 'GBP') . "\n";
+        }
+
+        echo "$startString: " . $nfmt->formatCurrency($runningTotal, 'GBP') . ' / High: ' .
+            $nfmt->formatCurrency($high, 'GBP') . ' / Low: ' . $nfmt->formatCurrency($low, 'GBP') . "\n";
     }
 
 }
