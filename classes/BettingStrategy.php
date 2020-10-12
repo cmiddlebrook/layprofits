@@ -86,9 +86,38 @@ class BettingStrategy
             ]);
     }
 
+    protected function getProfitByRace()
+    {
+        $db = Database::getInstance();
+
+        $sql = "SELECT start, track, sum(profit) as race_profit FROM $this->tableName GROUP BY start, track;";
+        $statement = $db->prepare($sql);
+        $statement->execute();
+
+        return $statement;
+    }
+
     public function analyse()
     {
+        $nfmt = new NumberFormatter("en", NumberFormatter::CURRENCY);
+        $counter = 0;
+        $day = new DateTime();
+        $day->setTime(0,0);
 
+        $raceProfits = $this->getProfitByRace();
+        foreach($raceProfits as $row)
+        {
+            $counter++;
+            $start = new DateTime($row['start']);
+            $start->setTime(0,0);
+            if ($day != $start)
+            {
+                echo "Profit for " . $start->format('d-M-Y') . ' : ' . $nfmt->formatCurrency($dailyProfit, 'GBP') . "\n";
+                $dailyProfit = 0;
+            }
+            $dailyProfit += $row['race_profit'];
+            $day = $start;
+        }
     }
 
 }
