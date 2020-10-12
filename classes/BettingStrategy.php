@@ -86,4 +86,9 @@ class BettingStrategy
             ]);
     }
 
+    public function analyse()
+    {
+
+    }
+
 }

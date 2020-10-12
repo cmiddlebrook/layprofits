@@ -9,6 +9,7 @@ $files = scandir($directoryPath);
 unset($files[0]);
 unset($files[1]);
 
+echo "[0] - Analyse existing data\n";
 foreach($files as $index => $file)
 {
      echo "[$index] - $file\n";
@@ -19,6 +20,22 @@ echo "\nChoose file to import: ";
 $input = trim(fgets(STDIN));
 $fileNr = (int) filter_var($input, FILTER_SANITIZE_NUMBER_INT);
 
+$bsf = new BettingStrategyFactory();
+
+if (0 == $fileNr)
+{
+    echo "[1] Napchecker\n";
+    echo "[2] Horse Racing US\n";
+    echo "[3] Horse Racing AUS\n";
+    echo "[4] Greyhounds AUS\n";
+    echo "\nSelect strategy: ";
+
+    $input = trim(fgets(STDIN));
+    $strategyNr = (int) filter_var($input, FILTER_SANITIZE_NUMBER_INT);
+    $bsf->analyse($strategyNr);
+    exit();
+}
+
 $fileName = $directoryPath . "\\" . $files[$fileNr];
 
 $csvFile = fopen("$fileName", "r");
@@ -28,7 +45,6 @@ if ($fileName == FALSE)
     exit;
 }
 
-$bsf = new BettingStrategyFactory();
 $count = 0;
 while(($data = fgetcsv($csvFile, 1000, ",")) !== FALSE)
 {
