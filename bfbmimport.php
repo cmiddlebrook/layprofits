@@ -28,6 +28,8 @@ if ($fileName == FALSE)
     exit;
 }
 
+$db = Database::getInstance();
+
 $bsf = new BettingStrategyFactory();
 while(($data = fgetcsv($csvFile, 1000, ",")) !== FALSE)
 {
