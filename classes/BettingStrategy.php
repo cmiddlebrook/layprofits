@@ -88,78 +88,73 @@ class BettingStrategy
             ]);
     }
 
-    protected function getProfitByRace()
-    {
-        $db = Database::getInstance();
+    // protected function getProfitByRace()
+    // {
+    //     $db = Database::getInstance();
+    //
+    //     $sql = "SELECT start, track, sum(profit) as race_profit FROM $this->tableName GROUP BY start, track;";
+    //     $statement = $db->prepare($sql);
+    //     $statement->execute();
+    //
+    //     return $statement;
+    // }
 
-        $sql = "SELECT start, track, sum(profit) as race_profit FROM $this->tableName GROUP BY start, track;";
-        $statement = $db->prepare($sql);
-        $statement->execute();
+    // protected function recordRaceProfit($raceProfit)
+    // {
+    //     $start = new DateTime($raceProfit['start']);
+    //     $start->setTime(0,0);
+    //     $startString = $start->format('d-M-Y');
+    //
+    //     if (!array_key_exists($startString, $this->daysProfits))
+    //     {
+    //         $this->daysProfits[$startString] = array();
+    //     }
+    //
+    //     array_push($this->daysProfits[$startString], $raceProfit);
+    // }
 
-        return $statement;
-    }
-
-    public function analyse()
-    {
-        $day = new DateTime();
-        $day->setTime(0,0);
-
-        $raceProfits = $this->getProfitByRace();
-        // store the profits for each race in an array indexed by the date run
-        foreach($raceProfits as $row)
-        {
-            $this->recordRaceProfit($row);
-        }
-
-        // now analyse on a per-day basis
-        foreach ($this->daysProfits as $day => $profits)
-        {
-            $this->analyseDailyProfit($day);
-        }
-    }
-
-    protected function recordRaceProfit($raceProfit)
-    {
-        $start = new DateTime($raceProfit['start']);
-        $start->setTime(0,0);
-        $startString = $start->format('d-M-Y');
-
-        if (!array_key_exists($startString, $this->daysProfits))
-        {
-            $this->daysProfits[$startString] = array();
-        }
-
-        array_push($this->daysProfits[$startString], $raceProfit);
-    }
-
-    protected function analyseDailyProfit($startString)
-    {
-        // echo "Analysing bets for $startString\n";
-        $nfmt = new NumberFormatter("en", NumberFormatter::CURRENCY);
-        $runningTotal = 0.0;
-        $high = 0.0;
-        $low = 0.0;
-        $raceProfits = $this->daysProfits[$startString];
-        foreach ($raceProfits as $raceProfit)
-        {
-            $profit = $raceProfit['race_profit'];
-            $runningTotal += $profit;
-
-            if ($runningTotal > $high)
-            {
-                $high = $runningTotal;
-            }
-
-            if ($runningTotal < $low)
-            {
-                $low = $runningTotal;
-            }
-
-            // echo "Running total: " . $nfmt->formatCurrency($runningTotal, 'GBP') . "\n";
-        }
-
-        echo "$startString: " . $nfmt->formatCurrency($runningTotal, 'GBP') . ' / High: ' .
-            $nfmt->formatCurrency($high, 'GBP') . ' / Low: ' . $nfmt->formatCurrency($low, 'GBP') . "\n";
-    }
+    // protected function analyseDailyProfit(string $startString, int $profitTarget, int $stopLoss)
+    // {
+    //     // echo "Analysing bets for $startString\n";
+    //     $nfmt = new NumberFormatter("en", NumberFormatter::CURRENCY);
+    //     $runningTotal = 0.0;
+    //     $high = 0.0;
+    //     $low = 0.0;
+    //     $raceProfits = $this->daysProfits[$startString];
+    //     foreach ($raceProfits as $raceProfit)
+    //     {
+    //         $profit = $raceProfit['race_profit'];
+    //         $runningTotal += $profit;
+    //
+    //         if ($runningTotal > $high)
+    //         {
+    //             $high = $runningTotal;
+    //         }
+    //
+    //         if ($runningTotal < $low)
+    //         {
+    //             $low = $runningTotal;
+    //         }
+    //
+    //         if ($runningTotal >= $profitTarget)
+    //         {
+    //             echo "Profit target of $profitTarget hit! Today's total: " . $nfmt->formatCurrency($runningTotal, 'GBP') . "\n";
+    //             break;
+    //         }
+    //
+    //         if ($runningTotal <= $stopLoss)
+    //         {
+    //             echo "Stop loss of $stopLoss hit! Today's total: " . $nfmt->formatCurrency($runningTotal, 'GBP') . "\n";
+    //             break;
+    //         }
+    //
+    //         // echo "Running total: " . $nfmt->formatCurrency($runningTotal, 'GBP') . "\n";
+    //     }
+    //
+    //     echo "$startString: " . $nfmt->formatCurrency($runningTotal, 'GBP') . ' / High: ' .
+    //         $nfmt->formatCurrency($high, 'GBP') . ' / Low: ' . $nfmt->formatCurrency($low, 'GBP') . "\n";
+    //
+    //     return $runningTotal;
+    // }
 
 }

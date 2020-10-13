@@ -2,17 +2,7 @@
 
 class BettingStrategyFactory
 {
-    private $strategies = array();
-
-    public function __construct()
-    {
-        $this->strategies[0] = 'Napchecker';
-        $this->strategies[1] = 'HorseRacingUS';
-        $this->strategies[2] = 'HorseRacingAUS';
-        $this->strategies[3] = 'GreyhoundsAUS';
-    }
-
-    private function getClassName($strategyName)
+    private function getClassByName(string $strategyName)
     {
         $className = $strategyName . 'Strategy';
 
@@ -32,18 +22,10 @@ class BettingStrategyFactory
         if ($strategyName == 'Strategy') return;
 
         // determine the correct class to instantiate based on the strategy
-        $className = $this->getClassName($strategyName);
+        $className = $this->getClassByName($strategyName);
 
         // instantiate the correct class and parse the bet data
         $strategy = new $className;
         $strategy->parseBet($data);
-    }
-
-    public function analyse(int $strategyNr)
-    {
-        $strategyName = $this->strategies[$strategyNr-1];
-        $className = $this->getClassName($strategyName);
-        $strategy = new $className;
-        $strategy->analyse();
     }
 }
