@@ -60,9 +60,9 @@ class ProfitAnalyser
 
     private function analyseProfitOverRangeOfTargets()
     {
-        for($profitTarget = 5; $profitTarget <= 100; $profitTarget += 1)
+        for($profitTarget = 1; $profitTarget <= 100; $profitTarget += 1)
         {
-            for($stopLoss = -10; $stopLoss >= -100; $stopLoss -= 1)
+            for($stopLoss = -1; $stopLoss >= -100; $stopLoss -= 1)
             {
                 $numberOfDays = 0;
                 $totalProfit = 0.0;
