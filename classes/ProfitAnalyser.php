@@ -21,6 +21,12 @@ class ProfitAnalyser
 
         $sql = "SELECT start, track, sum(profit) as race_profit FROM $tableName GROUP BY start, track;";
 
+        // HACK for the US strategy, offset the time by 8 hours to bring the results of a US day into a UK day
+        if($strategyNumber == 2)
+        {
+            $sql = "SELECT DATE_SUB(start, INTERVAL '0-8' DAY_HOUR) as start, track, sum(profit) as race_profit FROM $tableName GROUP BY start, track;";
+        }
+
         $statement = $db->prepare($sql);
         $statement->execute();
 
