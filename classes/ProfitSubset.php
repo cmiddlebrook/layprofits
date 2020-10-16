@@ -30,6 +30,12 @@ class ProfitSubset
         return $this->profit();
     }
 
+    public function getStrikeRate()
+    {
+        $numDays = count($this->profitsByDay);
+        return round((100 / $numDays) * $this->numberOfProfitableDays);
+    }
+
     public function addDaysProfit(float $profit)
     {
         array_push($this->profitsByDay, $profit);
@@ -49,9 +55,8 @@ class ProfitSubset
     public function print()
     {
         $numDays = count($this->profitsByDay);
-        $percentageProfitable = 100 / $numDays * $this->numberOfProfitableDays;
         echo "Profit Target: $this->profitTarget, Stop Loss: $this->stopLoss, Profit: $this->totalProfit\n";
-        echo "Highest Loss: $this->highestLoss, Days Analysed: $numDays, Profitable: $this->numberOfProfitableDays ($percentageProfitable%)\n";
+        echo "Highest Loss: $this->highestLoss, Days Analysed: $numDays, Strike Rate: " . $this->getStrikeRate() . "%\n";
         print_r($this->profitsByDay);
     }
 }
