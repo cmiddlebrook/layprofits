@@ -4,7 +4,8 @@ class ProfitAnalyser
 {
     private $dbTables = array();
     private $daysProfits = array();
-    private $profitSubsets = array();
+    private $highestProfit = 0.0;
+    private $bestSubset = null;
 
     public function __construct()
     {
@@ -14,22 +15,21 @@ class ProfitAnalyser
         $this->dbTables[3] = 'greyhounds_aus';
     }
 
-    private function getProfitByRace(int $strategyNumber)
+    private function getProfitByRace(int $strategyNumber, int $odds)
     {
         $db = Database::getInstance();
         $tableName = $this->getTableName($strategyNumber);
 
-        $sql = "SELECT start, track, sum(profit) as race_profit FROM $tableName GROUP BY start, track;";
+        $sql = "SELECT start, track, sum(profit) as race_profit FROM $tableName WHERE odds <= ? GROUP BY start, track;";
 
         // HACK for the US strategy, offset the time by 8 hours to bring the results of a US day into a UK day
         if($strategyNumber == 2)
         {
-            $sql = "SELECT DATE_SUB(start, INTERVAL '0-8' DAY_HOUR) as start, track, sum(profit) as race_profit FROM $tableName GROUP BY start, track;";
+            $sql = "SELECT DATE_SUB(start, INTERVAL '0-8' DAY_HOUR) as start, track, sum(profit) as race_profit FROM $tableName WHERE odds <= ? GROUP BY start, track;";
         }
 
         $statement = $db->prepare($sql);
-        $statement->execute();
-
+        $statement->execute([$odds]);
         return $statement;
     }
 
@@ -45,58 +45,56 @@ class ProfitAnalyser
 
     public function analyse(int $strategyNumber)
     {
-        $raceProfits = $this->getProfitByRace($strategyNumber);
-        $this->analyseProfitForStrategy($raceProfits);
+        // HACK I should work this into a strategy class somehow. Max odds for Napchecker is 50, all others are 21
+        $maxOdds = $strategyNumber == 1 ? 40 : 21;
+        for ($odds = 5; $odds <= $maxOdds; $odds++)
+        {
+            $raceProfits = $this->getProfitByRace($strategyNumber, $odds);
+            $this->analyseProfitForStrategy($raceProfits, $odds);
+        }
+
+        echo "Best subset found: \n";
+        $this->bestSubset->print();
     }
 
-    private function analyseProfitForStrategy(PDOStatement $raceProfits)
+    private function analyseProfitForStrategy(PDOStatement $raceProfits, int $odds)
     {
         // store the profits for each race in an array indexed by the date run
+        $this->daysProfits = array();
         foreach($raceProfits as $row)
         {
             $this->recordProfitByDay($row);
         }
 
         // now analyse on a per-day basis
-        $this->analyseProfitOverRangeOfTargets();
-
-        // print the best results
-        ksort($this->profitSubsets);
-        $numSubsets = count($this->profitSubsets);
-        $mostProfitableSubsets = array_slice($this->profitSubsets, $numSubsets-5);
-        foreach($mostProfitableSubsets as $subset)
-        {
-            $subset->print();
-        }
+        $this->analyseProfitOverRangeOfTargets($odds);
     }
 
-    private function analyseProfitOverRangeOfTargets()
+    private function analyseProfitOverRangeOfTargets(int $odds)
     {
-        // try 10,000 combinations of profit and loss targets to find the most profitable combination
-        $count = 0;
+        // try all the combinations of profit and loss targets to find the most profitable combination
         for($profitTarget = 1; $profitTarget <= 100; $profitTarget += 1)
         {
-            for($stopLoss = -100; $stopLoss <= -1; $stopLoss += 1)
+            for($stopLoss = -1; $stopLoss >= -100; $stopLoss -= 1)
             {
-                $profitSubset = new ProfitSubset($profitTarget, $stopLoss);
+                $profitSubset = new ProfitSubset($profitTarget, $stopLoss, $odds);
                 $numberOfDays = 0;
                 $totalProfit = 0.0;
                 foreach ($this->daysProfits as $day => $profits)
                 {
                     $totalProfit += $this->analyseDailyProfit($day, $profitSubset);
-                    $numberOfDays++;
                 }
 
-                // only keep the profitable subsets with good strike rates
+                // is this a better subset than we have already found?
                 $strikeRate = $profitSubset->getStrikeRate();
-                if ($totalProfit > 0.0 && $strikeRate >= 70)
+                if ($totalProfit > $this->highestProfit && $strikeRate >= 70 && $strikeRate <= 90)
                 {
-                    $count++;
-                    $this->profitSubsets[$totalProfit] = $profitSubset;
+                    echo "New High! Profit: $totalProfit, MO: $odds, PT: $profitTarget, SL: $stopLoss, SR $strikeRate\n";
+                    $this->bestSubset = $profitSubset;
+                    $this->highestProfit = $totalProfit;
                 }
             }
         }
-        echo count($this->profitSubsets) . "subsets analysed\n";
     }
 
     private function analyseDailyProfit(string $startString, ProfitSubset $profitSubset)

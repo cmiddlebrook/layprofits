@@ -4,15 +4,17 @@ class ProfitSubset
 {
     private $profitTarget = 0;
     private $stopLoss = 0;
+    private $maxOdds = 0;
     private $profitsByDay = array();
     private $totalProfit = 0.0;
     private $highestLoss = 0.0;
     private $numberOfProfitableDays = 0;
 
-    public function __construct(int $profitTarget, int $stopLoss)
+    public function __construct(int $profitTarget, int $stopLoss, int $maxOdds)
     {
         $this->profitTarget = $profitTarget;
         $this->stopLoss = $stopLoss;
+        $this->maxOdds = $maxOdds;
     }
 
     public function getProfitTarget()
@@ -57,7 +59,7 @@ class ProfitSubset
         print_r($this->profitsByDay);
 
         $numDays = count($this->profitsByDay);
-        echo "Profit Target: $this->profitTarget, Stop Loss: $this->stopLoss, Profit: $this->totalProfit\n";
+        echo "Profit: $this->totalProfit, Max Odds: $this->maxOdds, Profit Target: $this->profitTarget, Stop Loss: $this->stopLoss\n";
         echo "Highest Loss: $this->highestLoss, Days Analysed: $numDays, Strike Rate: " . $this->getStrikeRate() . "%\n";
     }
 }
