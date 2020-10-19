@@ -89,7 +89,7 @@ class ProfitAnalyser
 
                 // only keep the profitable subsets with good strike rates
                 $strikeRate = $profitSubset->getStrikeRate();
-                if ($totalProfit > 0.0 && $strikeRate >= 60)
+                if ($totalProfit > 0.0 && $strikeRate >= 70)
                 {
                     $count++;
                     $this->profitSubsets[$totalProfit] = $profitSubset;

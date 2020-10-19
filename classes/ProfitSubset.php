@@ -54,9 +54,10 @@ class ProfitSubset
 
     public function print()
     {
+        print_r($this->profitsByDay);
+
         $numDays = count($this->profitsByDay);
         echo "Profit Target: $this->profitTarget, Stop Loss: $this->stopLoss, Profit: $this->totalProfit\n";
         echo "Highest Loss: $this->highestLoss, Days Analysed: $numDays, Strike Rate: " . $this->getStrikeRate() . "%\n";
-        print_r($this->profitsByDay);
     }
 }
